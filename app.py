@@ -95,6 +95,7 @@ def main():
                 if sample['affExtParam1'] == str(aff_ext_param1):
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
+                    sample.pop("commissionRate", None)
                     req_data.append(sample)
             
             # Center align metric
