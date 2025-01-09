@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import pandas as pd
+import json
 
 # Define API details
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
@@ -8,6 +9,11 @@ HEADERS = {
     "Fk-Affiliate-Id": "bh7162",
     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
 }
+
+# Load credentials from JSON file
+def load_credentials():
+    with open("credentials.json", "r") as file:
+        return json.load(file)
 
 def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
     params = {
@@ -25,8 +31,33 @@ def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
+def login():
+    st.title("🔑 Login Page")
+    credentials = load_credentials()
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    login_clicked = st.button("Login")
+    if login_clicked and username in credentials and credentials[username][0] == password:
+        st.session_state["logged_in"] = True
+        st.session_state["aff_ext_param1"] = credentials[username][1]
+        st.rerun()
+    elif login_clicked:
+        st.error("Invalid username or password")
+
+def logout():
+    st.session_state.clear()
+    st.rerun()
+
 def main():
     st.set_page_config(page_title="Flipkart Affiliate Report", layout="wide")
+    
+    if "logged_in" not in st.session_state:
+        st.session_state["logged_in"] = False
+    
+    if not st.session_state["logged_in"]:
+        login()
+        return
+    
     st.title("📊 Flipkart Affiliate Order Report")
     
     # Sidebar for user inputs
@@ -35,11 +66,16 @@ def main():
         start_date = st.date_input("Start Date")
         end_date = st.date_input("End Date")
         status = st.selectbox("Order Status", ["approved", "tentative", "cancelled"])
-        aff_ext_param1 = st.text_input("Affiliate External Param 1", "189")
         fetch_button = st.button("Fetch Data")
+        
+        st.markdown("---")
+        if st.button("Logout"):
+            logout()
     
     if fetch_button:
         st.subheader("Results")
+        
+        aff_ext_param1 = st.session_state["aff_ext_param1"]
         
         # Initial fetch
         data = fetch_data(start_date, end_date, status, aff_ext_param1, 1)
