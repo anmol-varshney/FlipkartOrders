@@ -90,7 +90,12 @@ def main():
                     full_data.extend(page_data['orderList'])
             
             # Filter results
-            req_data = [sample for sample in full_data if sample['affExtParam1'] == str(aff_ext_param1)]
+            req_data = []
+            for sample in full_data:
+                if sample['affExtParam1'] == str(aff_ext_param1):
+                    sample['sales'] = sample['sales']['amount']
+                    sample['tentativeCommission'] = sample['tentativeCommission']['amount']
+                    req_data.append(sample)
             
             # Center align metric
             st.markdown("""
