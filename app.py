@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+import matplotlib.pyplot as plt
 
 # Define API details
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
@@ -40,17 +41,166 @@ def login():
     if login_clicked and username in credentials and credentials[username][0] == password:
         st.session_state["logged_in"] = True
         st.session_state["aff_ext_param1"] = credentials[username][1]
+        st.session_state["username"] = username
         st.rerun()
     elif login_clicked:
         st.error("Invalid username or password")
 
+        
 def logout():
     st.session_state.clear()
     st.rerun()
 
 def main():
-    st.set_page_config(page_title="Flipkart Affiliate Report", layout="wide")
+    st.set_page_config(page_title="AdgamaDigital", layout="wide", page_icon="https://github.com/anmol-varshney/FlipkartOrders/blob/main/logo.jpeg?raw=true")
     
+    # Inject custom CSS for a professional look and fixed buttons
+    st.markdown(
+    """
+        <style>
+    /* General Styles */
+    .main {
+        background-color: #e3f2fd; /* Light blue background */
+        color: #0d47a1; /* Dark blue text */
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Title Container */
+    .title-container {
+        background-color: #0d47a1; /* Dark blue background */
+        color: white; /* White text */
+        padding: 2em; /* Padding around the title */
+        text-align: center;
+        border-radius: 8px; /* Rounded corners */
+        margin-bottom: 2em;
+    }
+
+    /* Change title color to yellow */
+    .title-container h1 {
+        color: white; /* Yellow color for the title */
+    }
+
+    /* Navigation Bar */
+    header {
+        background-color: white; /* White background */
+        color: #0d47a1; /* Dark blue text */
+        padding: 10px;
+        font-size: 1.2em;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    }
+    .nav-logo {
+        display: flex;
+        justify-content: center; /* Center the image */
+    }
+
+    /* Input Fields */
+    .stTextInput, .stDateInput, .stSelectbox {
+        background-color: #e3f2fd; /* Match main background */
+        color: #0d47a1; /* Dark blue text */
+        border: 1px solid #0288d1; /* Light blue border */
+        border-radius: 5px;
+        padding: 0.5em;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        background-color: #0d47a1; /* Green background for a professional feel */
+        color: white; /* White text */
+        border: none;
+        padding: 0.6em 1.5em; /* Larger padding for a modern look */
+        border-radius: 25px; /* Rounded corners for a polished design */
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .stButton>button:hover {
+        background-color: #bbdefb; /* Light blue background on hover */
+        color: white; /* Text stays white */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+
+    /* "Logged in as" Section */
+    .logged-in-info {
+        background-color: #ffffff; /* White background */
+        color: #0d47a1; /* Dark blue text */
+        border: 2px solid #0288d1; /* Light blue border */
+        border-radius: 8px;
+        padding: 0.8em;
+        margin-bottom: 1em;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        font-size: 1em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center-align the text */
+    }
+
+    /* Sidebar Styles */
+    .stSidebar {
+        background-color: #bbdefb; /* Lighter blue sidebar */
+        color: #0d47a1; /* Dark blue text */
+        border-right: 3px solid #039be5; /* Blue border */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100vh;
+    }
+
+    .stSidebar .block-container {
+        flex: 1;
+    }
+
+    /* Buttons at the bottom */
+    .bottom-button {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        padding: 0.6em 1.5em;
+        background-color: #4caf50; /* Green background for Fetch Data */
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .bottom-button:hover {
+        background-color: #bbdefb; /* Light blue background on hover */
+        color: white; /* Text stays white */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+
+    /* Logout Button at the bottom */
+    .logout-btn {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        padding: 0.6em 1.5em;
+        background-color: #f44336; /* Red background */
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .logout-btn:hover {
+        background-color: #d32f2f; /* Darker red on hover */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+    </style>
+
+    """,
+    unsafe_allow_html=True
+    )
+
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
     
@@ -58,61 +208,96 @@ def main():
         login()
         return
     
-    st.title("📊 Flipkart Affiliate Order Report")
-    
+    # Title Container
+    st.markdown(
+        """
+        <div class="title-container">
+            <h1>📊 Flipkart Affiliate Order Report</h1>
+            <p><b>Welcome to the Flipkart Affiliate Order Dashboard!<br>
+            Track your affiliate orders and their status with ease. Use the filters below to customize the data you wish to view.</b></p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
     # Sidebar for user inputs
     with st.sidebar:
+        st.markdown(
+            """
+            <div class="nav-logo">
+                <img src="https://github.com/anmol-varshney/FlipkartOrders/blob/main/logo.jpeg?raw=true" width="100"/>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        if "username" in st.session_state:
+            st.markdown(
+                f"""
+                <div class="logged-in-info">
+                    Logged in as:<span> {st.session_state['username']}</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
         st.header("🔍 Filter Options")
         start_date = st.date_input("Start Date")
         end_date = st.date_input("End Date")
         status = st.selectbox("Order Status", ["approved", "tentative", "cancelled"])
-        fetch_button = st.button("Fetch Data")
         
-        st.markdown("---")
-        if st.button("Logout"):
+        # Fetch Data Button
+        st.write(" ")
+        st.write(" ")
+        fetch_button = st.button("Fetch Data", key="fetch_data_button", use_container_width=True)
+        
+        # Logout Button
+        if st.button("Logout", key="logout_button", use_container_width=True):
             logout()
     
+    # Position the buttons at the bottom of the sidebar using custom CSS
+    st.markdown("""
+    <script>
+        document.querySelector('.stSidebar').style.position = 'relative';
+        document.querySelector('.stSidebar').style.display = 'flex';
+        document.querySelector('.stSidebar').style.flexDirection = 'column';
+        document.querySelector('.stSidebar').style.justifyContent = 'space-between';
+    </script>
+    """, unsafe_allow_html=True)
+
     if fetch_button:
-        st.subheader("Results")
-        
+
         aff_ext_param1 = st.session_state["aff_ext_param1"]
-        
-        # Initial fetch
         data = fetch_data(start_date, end_date, status, aff_ext_param1, 1)
         if data and 'paginationContext' in data:
             full_data = []
             total_pages = data['paginationContext']['totalPages']
-            
-            # Fetch all pages
             for i in range(total_pages):
                 page_data = fetch_data(start_date, end_date, status, aff_ext_param1, i+1)
                 if page_data and 'orderList' in page_data:
                     full_data.extend(page_data['orderList'])
-            
-            # Filter results
             req_data = []
             for sample in full_data:
                 if sample['affExtParam1'] == str(aff_ext_param1):
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
                     sample.pop("commissionRate", None)
+                    sample.pop("affExtParam2", None)
+                    sample.pop("customerType", None)
                     req_data.append(sample)
-            
-            # Center align metric
-            st.markdown("""
-                <div style="display: flex; justify-content: center;">
-                    <div style="text-align: center;">
-                        <h2>📌 Total Samples</h2>
-                        <h1>{}</h1>
-                    </div>
+            st.markdown(
+                f"""
+                <div style="text-align: center;">
+                    <h2>📌 Order Report 📌</h2>
                 </div>
-            """.format(len(req_data)), unsafe_allow_html=True)
-            
+                """,
+                unsafe_allow_html=True
+            )
             if req_data:
                 df = pd.DataFrame(req_data)
                 st.dataframe(df, use_container_width=True)
             else:
                 st.warning("No data found for the given criteria.")
+        
 
 if __name__ == "__main__":
     main()
