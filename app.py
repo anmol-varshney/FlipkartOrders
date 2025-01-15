@@ -229,6 +229,7 @@ def main():
             """,
             unsafe_allow_html=True
         )
+        st.write(" ")
         if "username" in st.session_state:
             st.markdown(
                 f"""
