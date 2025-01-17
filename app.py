@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+import matplotlib.pyplot as plt
 
 # Define API details
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
@@ -31,12 +32,22 @@ def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
+
 def login():
+
+    # Centering the logo using Streamlit's columns
+    col1, col2, col3 = st.columns([1, 2, 1])  # Creates three columns, middle column is wider
+    
+    with col2:  # Place image in the center column
+        st.image("https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
+
     st.title("🔑 Login Page")
+    
     credentials = load_credentials()
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     login_clicked = st.button("Login")
+
     if login_clicked and username in credentials and credentials[username][0] == password:
         st.session_state["logged_in"] = True
         st.session_state["aff_ext_param1"] = credentials[username][1]
@@ -44,14 +55,13 @@ def login():
         st.rerun()
     elif login_clicked:
         st.error("Invalid username or password")
-
         
 def logout():
     st.session_state.clear()
     st.rerun()
 
 def main():
-    st.set_page_config(page_title="AdgamaDigital", layout="wide", page_icon="https://github.com/anmol-varshney/FlipkartOrders/blob/main/logo.jpeg?raw=true")
+    st.set_page_config(page_title="AdgamaDigital", layout="centered", page_icon="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
     
     # Inject custom CSS for a professional look and fixed buttons
     st.markdown(
@@ -224,11 +234,13 @@ def main():
         st.markdown(
             """
             <div class="nav-logo">
-                <img src="https://github.com/anmol-varshney/FlipkartOrders/blob/main/logo.jpeg?raw=true" width="100"/>
+                <img src="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true" width="100"/>
             </div>
             """,
             unsafe_allow_html=True
         )
+        st.write(" ")
+        st.write(" ")
         st.write(" ")
         if "username" in st.session_state:
             st.markdown(
@@ -283,6 +295,9 @@ def main():
                     sample.pop("commissionRate", None)
                     sample.pop("affExtParam2", None)
                     sample.pop("customerType", None)
+                    sample.pop("price", None)
+                    sample.pop("quantity", None)
+                    sample.pop("tentativeCommission", None)
                     req_data.append(sample)
             st.markdown(
                 f"""
@@ -301,3 +316,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
