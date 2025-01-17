@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
-import matplotlib.pyplot as plt
 
 # Define API details
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
