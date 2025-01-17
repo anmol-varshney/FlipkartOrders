@@ -40,6 +40,8 @@ def login():
     with col2:  # Place image in the center column
         st.image("https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
 
+    st.write(" ")
+    st.write(" ")
     st.title("🔑 Login Page")
     
     credentials = load_credentials()
