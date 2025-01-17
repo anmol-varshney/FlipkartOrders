@@ -309,8 +309,11 @@ def main():
                 unsafe_allow_html=True
             )
             if req_data:
-                df = pd.DataFrame(req_data)
-                st.dataframe(df, use_container_width=True)
+                if req_data:
+                    df = pd.DataFrame(req_data)
+                    df.index = df.index + 1  # Change index to start from 1
+                    st.dataframe(df, use_container_width=True)
+
             else:
                 st.warning("No data found for the given criteria.")
         
