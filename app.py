@@ -298,7 +298,7 @@ def main():
                     sample.pop("customerType", None)
                     sample.pop("price", None)
                     sample.pop("quantity", None)
-                    sample.pop("tentativeCommission", None)
+                    #sample.pop("tentativeCommission", None)
                     req_data.append(sample)
             st.markdown(
                 f"""
