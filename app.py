@@ -294,7 +294,7 @@ def main():
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
                     sample.pop("commissionRate", None)
-                    sample.pop("affExtParam2", None)
+                    #sample.pop("affExtParam2", None)
                     sample.pop("customerType", None)
                     sample.pop("price", None)
                     sample.pop("quantity", None)
