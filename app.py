@@ -289,19 +289,20 @@ def main():
                 if page_data and 'orderList' in page_data:
                     full_data.extend(page_data['orderList'])
             req_data = []
+            print(full_data)
             for sample in full_data:
-                if sample['affExtParam1'] == str(aff_ext_param1):
+                if str(sample['affExtParam1']).startswith(str(aff_ext_param1)):
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
                     sample.pop("commissionRate", None)
-                    #sample.pop("affExtParam2", None)
+                    # sample.pop("affExtParam2", None)
                     sample.pop("customerType", None)
                     sample.pop("price", None)
                     sample.pop("quantity", None)
                     #sample.pop("tentativeCommission", None)
                     req_data.append(sample)
             st.markdown(
-                f"""
+               f"""
                 <div style="text-align: center;">
                     <h2>📌 Order Report 📌</h2>
                 </div>
