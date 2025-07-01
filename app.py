@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
+from datetime import date
 
 # Define API details
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
@@ -254,8 +255,17 @@ def main():
             )
 
         st.header("🔍 Filter Options")
-        start_date = st.date_input("Start Date")
-        end_date = st.date_input("End Date")
+        # start_date = st.date_input("Start Date")
+        # end_date = st.date_input("End Date")
+        
+        # Get today's date
+        today = date.today()
+        
+        # Format the date as "YYYY-MM-DD"
+        formatted_date = today.strftime("%Y-%m-%d")
+        start_date = formatted_date
+        end_date = formatted_date
+        
         status = st.selectbox("Order Status", ["approved", "tentative", "cancelled"])
         
         # Fetch Data Button
