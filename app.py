@@ -3,15 +3,15 @@ import requests
 import pandas as pd
 import json
 from datetime import date, datetime
-from dotenv import load_dotenv
-import os
+# from dotenv import load_dotenv
+# import os
 
-load_dotenv()
+# load_dotenv()
 
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
 HEADERS = {
-    "Fk-Affiliate-Id": os.getenv("FLIPKART_AFFILIATE_ID"),
-    "Fk-Affiliate-Token": os.getenv("FLIPKART_AFFILIATE_TOKEN")
+    "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
+    "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
 }
 
 # Load credentials from JSON file
