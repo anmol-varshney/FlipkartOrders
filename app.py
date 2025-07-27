@@ -52,9 +52,9 @@ def login():
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     login_clicked = st.button("Login")
-    print("LOGIN: ", login_clicked)
-    print("username: ", username)
-    print("check", credentials[username][0])
+    st.write("LOGIN: ", login_clicked)
+    st.write("username: ", username)
+    st.write("check", credentials[username][0])
 
     if login_clicked and username in credentials and credentials[username][0] == password:
         st.session_state["logged_in"] = True
