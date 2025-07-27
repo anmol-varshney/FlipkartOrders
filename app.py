@@ -2,13 +2,16 @@ import streamlit as st
 import requests
 import pandas as pd
 import json
-from datetime import date
+from datetime import date, datetime
+from dotenv import load_dotenv
+import os
 
-# Define API details
+load_dotenv()
+
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
 HEADERS = {
-    "Fk-Affiliate-Id": "bh7162",
-    "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+    "Fk-Affiliate-Id": os.getenv("FLIPKART_AFFILIATE_ID"),
+    "Fk-Affiliate-Token": os.getenv("FLIPKART_AFFILIATE_TOKEN")
 }
 
 # Load credentials from JSON file
@@ -258,11 +261,18 @@ def main():
         # start_date = st.date_input("Start Date")
         # end_date = st.date_input("End Date")
         
-        # Get today's date
-        today = date.today()
+        # Get current datetime
+        now = datetime.now()
+
+        # Format as "YYYY-MM-DD"
+        formatted_date = now.strftime("%Y-%m-%d")
+
+        # Format as "HH:MM:SS"
+        formatted_time = now.strftime("%H:%M:%S")
+
+        # print("Current Date:", formatted_date)
+        # print("Current Time:", formatted_time)
         
-        # Format the date as "YYYY-MM-DD"
-        formatted_date = today.strftime("%Y-%m-%d")
         start_date = formatted_date
         end_date = formatted_date
         
@@ -299,9 +309,13 @@ def main():
                 if page_data and 'orderList' in page_data:
                     full_data.extend(page_data['orderList'])
             req_data = []
-            print(full_data)
+            # print(full_data)
             for sample in full_data:
-                if str(sample['affExtParam1']).startswith(str(aff_ext_param1)):
+                # Check both affiliate ID and orderDate match
+                if (
+                    str(sample['affExtParam1']).startswith(str(aff_ext_param1))
+                    and sample.get("orderDate") == formatted_date
+                ):
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
                     sample.pop("commissionRate", None)
