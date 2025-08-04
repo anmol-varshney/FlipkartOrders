@@ -335,7 +335,7 @@ def main():
             )
             if req_data:
                 if req_data:
-                    df = pd.DataFrame(req_data)
+                    df = pd.DataFrame(req_data).reset_index(drop=True)
                     df.index = df.index + 1  # Change index to start from 1
                     st.dataframe(df, use_container_width=True)
 
