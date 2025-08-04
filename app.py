@@ -258,23 +258,23 @@ def main():
             )
 
         st.header("🔍 Filter Options")
-        # start_date = st.date_input("Start Date")
-        # end_date = st.date_input("End Date")
+        start_date = st.date_input("Start Date")
+        end_date = st.date_input("End Date")
         
         # Get current datetime
-        now = datetime.now()
+        #now = datetime.now()
 
         # Format as "YYYY-MM-DD"
-        formatted_date = now.strftime("%Y-%m-%d")
+        #formatted_date = now.strftime("%Y-%m-%d")
 
         # Format as "HH:MM:SS"
-        formatted_time = now.strftime("%H:%M:%S")
+        #formatted_time = now.strftime("%H:%M:%S")
 
         # print("Current Date:", formatted_date)
         # print("Current Time:", formatted_time)
         
-        start_date = formatted_date
-        end_date = formatted_date
+        #start_date = formatted_date
+        #end_date = formatted_date
         
         status = st.selectbox("Order Status", ["approved", "tentative", "cancelled"])
         
