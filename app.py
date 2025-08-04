@@ -314,7 +314,7 @@ def main():
                 # Check both affiliate ID and orderDate match
                 if (
                     str(sample['affExtParam1']).startswith(str(aff_ext_param1))
-                    and sample.get("orderDate") == formatted_date
+                    #and sample.get("orderDate") == formatted_date
                 ):
                     sample['sales'] = sample['sales']['amount']
                     sample['tentativeCommission'] = sample['tentativeCommission']['amount']
