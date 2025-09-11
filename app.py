@@ -190,32 +190,32 @@ def main():
                 st.warning("No data found for the given criteria.")
 
     # ===================== AFFILIATE LINK GENERATOR =====================
-    st.markdown(
-       f"""
-        <div style="text-align: center; margin-top: 30px;">
-            <h2>🔗 Flipkart Affiliate Link Generator</h2>
-            <p><b>Paste a product link below and generate your affiliate link instantly.</b></p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    #st.markdown(
+    #   f"""
+    #    <div style="text-align: center; margin-top: 30px;">
+    #        <h2>🔗 Flipkart Affiliate Link Generator</h2>
+    #        <p><b>Paste a product link below and generate your affiliate link instantly.</b></p>
+    #    </div>
+    #    """,
+    #    unsafe_allow_html=True
+    #)
 
-    original_url = st.text_input("Enter Flipkart Product URL:")
-    if st.button("Generate Affiliate Link"):
-        if original_url.strip():
-            affiliate_link = generate_affiliate_link(original_url)
-            st.success("✅ Affiliate Link Generated")
-            st.code(affiliate_link, language="text")
-            st.markdown(
-                f"""
-                <button class="stButton" onclick="navigator.clipboard.writeText('{affiliate_link}')">
-                    📋 Copy Link
-                </button>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.warning("Please enter a valid Flipkart URL.")
+    #original_url = st.text_input("Enter Flipkart Product URL:")
+    #if st.button("Generate Affiliate Link"):
+    #    if original_url.strip():
+    #        affiliate_link = generate_affiliate_link(original_url)
+    #        st.success("✅ Affiliate Link Generated")
+    #        st.code(affiliate_link, language="text")
+    #        st.markdown(
+    #            f"""
+    #            <button class="stButton" onclick="navigator.clipboard.writeText('{affiliate_link}')">
+    #                📋 Copy Link
+    #            </button>
+    #            """,
+    #            unsafe_allow_html=True
+    #        )
+    #    else:
+    #        st.warning("Please enter a valid Flipkart URL.")
 
 # ===================== RUN =====================
 if __name__ == "__main__":
