@@ -7,19 +7,19 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import os
 
 # =====Local======
-# from dotenv import load_dotenv
-# load_dotenv()
-# HEADERS = {
-#     "Fk-Affiliate-Id": "bh7162",
-#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-# }
+from dotenv import load_dotenv
+load_dotenv()
+HEADERS = {
+    "Fk-Affiliate-Id": "bh7162",
+    "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+}
 
 # ===================== CONFIG(server) =====================
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
-HEADERS = {
-    "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
-    "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
-}
+# HEADERS = {
+#     "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
+#     "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
+# }
 
 # Affiliate Link Generator Settings
 AFFILIATE_ID = "bh7162"
@@ -79,6 +79,33 @@ def shorten_with_tinyurl(url: str) -> str:
     else:
         st.error(f"TinyURL API failed: {response.status_code}")
         return url
+
+import matplotlib.pyplot as plt
+
+def visualize_data(df):
+    st.markdown("## 📊 Data Insights")
+
+    # --- KPIs ---
+    total_sales = df["sales"].sum()
+    total_commission = df["tentativeCommission"].sum()
+    total_orders = len(df)
+
+    col1, col2, col3 = st.columns(3)
+    col1.metric("💰 Total Sales", f"₹{total_sales:,.0f}")
+    col2.metric("🏆 Total Commission", f"₹{total_commission:,.0f}")
+    col3.metric("📦 Total Orders", total_orders)
+
+    st.markdown("---")
+
+    # --- Commission by Category ---
+    st.subheader("🎯 Commission by Category")
+    commission_category = df.groupby("category")["tentativeCommission"].sum().sort_values(ascending=False)
+    st.bar_chart(commission_category)
+
+    # --- Top Products ---
+    st.subheader("🏅 Top Products by Sales")
+    top_products = df.groupby("title")["sales"].sum().sort_values(ascending=False).head(5)
+    st.dataframe(top_products.reset_index())
 
 # ===================== AUTH =====================
 def login():
@@ -206,6 +233,9 @@ def main():
                 df = pd.DataFrame(req_data).reset_index(drop=True)
                 df.index = df.index + 1  
                 st.dataframe(df, use_container_width=True)
+                if not df.empty:
+                    visualize_data(df)
+
             else:
                 st.warning("No data found for the given criteria.")
 
