@@ -220,24 +220,32 @@ def main():
             req_data = []
             for sample in full_data:
                 if str(sample['affExtParam1']).startswith(str(aff_ext_param1)):
-                    sample['sales'] = sample['sales']['amount']
-                    sample['tentativeCommission'] = sample['tentativeCommission']['amount']
-                    sample.pop("commissionRate", None)
-                    sample.pop("customerType", None)
-                    sample.pop("price", None)
-                    sample.pop("quantity", None)
-                    req_data.append(sample)
+                    mapped_row = {
+                        "orderItemUnitId": sample.get("affiliateOrderItemId", ""),
+                        "orderItemUnitStatus": sample.get("status", ""),
+                        "orderDate": sample.get("orderDate", ""),
+                        "partnerId": AFFILIATE_ID,
+                        "effectivePrice": sample.get("price", 0),
+                        "commission": sample.get("tentativeCommission", {}).get("amount", 0),
+                        "commissionRuleTitle": sample.get("category", ""),
+                        "commissionRate": sample.get("commissionRate", 0),
+                        "productId": sample.get("productId", ""),
+                        "productTitle": sample.get("title", ""),
+                        "extParam1": sample.get("affExtParam1", ""),
+                        "extParam2": sample.get("affExtParam2", ""),
+                        "updatedAt": sample.get("updatedAt", ""),
+                        "orderTimeStamp": sample.get("orderTimeStamp", "")
+                    }
+                    req_data.append(mapped_row)
 
             st.markdown("<div style='text-align: center;'><h2>📌 Order Report 📌</h2></div>", unsafe_allow_html=True)
             if req_data:
                 df = pd.DataFrame(req_data).reset_index(drop=True)
-                df.index = df.index + 1  
+                df.index = df.index + 1
                 st.dataframe(df, use_container_width=True)
-                if not df.empty:
-                    visualize_data(df)
-
             else:
                 st.warning("No data found for the given criteria.")
+
 
     # ===================== AFFILIATE LINK GENERATOR =====================
 
