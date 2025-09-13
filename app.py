@@ -86,9 +86,9 @@ def visualize_data(df):
     st.markdown("## 📊 Data Insights")
 
     # --- KPIs ---
-    total_sales = df["sales"].sum()
-    total_commission = df["tentativeCommission"].sum()
-    total_orders = len(df)
+    total_sales = df["effectivePrice"].sum()
+    # total_commission = df["tentativeCommission"].sum()
+    # total_orders = len(df)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
@@ -104,7 +104,7 @@ def visualize_data(df):
 
     # --- Top Products ---
     st.subheader("🏅 Top Products by Sales")
-    top_products = df.groupby("title")["sales"].sum().sort_values(ascending=False).head(5)
+    top_products = df.groupby("title")["effectivePrice"].sum().sort_values(ascending=False).head(5)
     st.dataframe(top_products.reset_index())
 
 # ===================== AUTH =====================
