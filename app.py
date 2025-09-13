@@ -87,8 +87,8 @@ def visualize_data(df):
 
     # --- KPIs ---
     total_sales = df["effectivePrice"].sum()
-    # total_commission = df["tentativeCommission"].sum()
-    # total_orders = len(df)
+    total_commission = df["commission"].sum()
+    total_orders = len(df)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
