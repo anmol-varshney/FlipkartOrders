@@ -4,8 +4,17 @@ import pandas as pd
 import json
 from datetime import date, datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+import os
 
-# ===================== CONFIG =====================
+# =====Local======
+# from dotenv import load_dotenv
+# load_dotenv()
+# HEADERS = {
+#     "Fk-Affiliate-Id": "bh7162",
+#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+# }
+
+# ===================== CONFIG(server) =====================
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
 HEADERS = {
     "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
@@ -61,12 +70,21 @@ def generate_affiliate_link(original_url: str) -> str:
     new_query = urlencode(ordered_query, doseq=True)
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", new_query, ""))
 
+def shorten_with_tinyurl(url: str) -> str:
+    """Shorten a given URL using TinyURL free API."""
+    api_url = f"http://tinyurl.com/api-create.php?url={url}"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        return response.text.strip()
+    else:
+        st.error(f"TinyURL API failed: {response.status_code}")
+        return url
+
 # ===================== AUTH =====================
 def login():
     col1, col2, col3 = st.columns([1, 2, 1])  
     with col2:  
-        st.image("https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
-
+        st.image("https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true")
     st.write(" ")
     st.title("🔑 Login Page")
     
@@ -92,7 +110,7 @@ def main():
     st.set_page_config(
         page_title="AdgamaDigital", 
         layout="centered", 
-        page_icon="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true"
+        page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
     )
     
     # CSS
@@ -135,16 +153,18 @@ def main():
         st.markdown(
             """
             <div class="nav-logo">
-                <img src="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true" width="100"/>
+                <img src="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true" width="100"/>
             </div>
             """,
             unsafe_allow_html=True
         )
+        st.write("")
+        st.write("")
         if "username" in st.session_state:
             st.markdown(
                 f"""
                 <div class="logged-in-info">
-                    Logged in as:<span> {st.session_state['username']}</span>
+                    Logged in as: <span> {st.session_state['username']}</span>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -190,32 +210,61 @@ def main():
                 st.warning("No data found for the given criteria.")
 
     # ===================== AFFILIATE LINK GENERATOR =====================
-    #st.markdown(
-    #   f"""
-    #    <div style="text-align: center; margin-top: 30px;">
-    #        <h2>🔗 Flipkart Affiliate Link Generator</h2>
-    #        <p><b>Paste a product link below and generate your affiliate link instantly.</b></p>
-    #    </div>
-    #    """,
-    #    unsafe_allow_html=True
-    #)
 
-    #original_url = st.text_input("Enter Flipkart Product URL:")
-    #if st.button("Generate Affiliate Link"):
-    #    if original_url.strip():
-    #        affiliate_link = generate_affiliate_link(original_url)
-    #        st.success("✅ Affiliate Link Generated")
-    #        st.code(affiliate_link, language="text")
-    #        st.markdown(
-    #            f"""
-    #            <button class="stButton" onclick="navigator.clipboard.writeText('{affiliate_link}')">
-    #                📋 Copy Link
-    #            </button>
-    #            """,
-    #            unsafe_allow_html=True
-    #        )
-    #    else:
-    #        st.warning("Please enter a valid Flipkart URL.")
+    st.markdown(
+    """
+    <div style="text-align: center; margin-top: 30px;">
+        <h2>🔗 Flipkart Affiliate Link Generator</h2>
+        <p><b>Paste a product link below and generate your affiliate link instantly.</b></p>
+    </div>
+    """,
+    unsafe_allow_html=True
+    )
+
+    original_url = st.text_input("Enter Flipkart Product URL:")
+    subid_input = st.text_input("Enter your Unique ID:")  # New input for Sub ID
+
+    # --- Buttons in one row ---
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Generate Affiliate Link"):
+            if original_url.strip():
+                affiliate_link = generate_affiliate_link(original_url)  # your existing function
+                tiny_link = shorten_with_tinyurl(affiliate_link)
+
+                st.success("✅ Normal Affiliate Link Generated")
+                # st.markdown("**Full Link:**")
+                # st.code(affiliate_link, language="text")
+                st.markdown("**Affiliate Link:**")
+                st.code(tiny_link, language="text")
+            else:
+                st.warning("Please enter a valid Flipkart URL.")
+
+    with col2:
+        if st.button("Generate Affiliate Link with Unique ID"):
+            if original_url.strip():
+                credentials = load_credentials()
+
+                if not subid_input.strip():
+                    st.warning("Please enter your unique ID.")
+                else:
+                    # Generate the Sub ID affiliate link
+                    if "?" in original_url:
+                        subid_link = f"{original_url}&affid={AFFILIATE_ID}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
+                    else:
+                        subid_link = f"{original_url}?affid={AFFILIATE_ID}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
+
+                    tiny_subid_link = shorten_with_tinyurl(subid_link)
+
+                    st.success("✅ Sub ID Affiliate Link Generated")
+                    # st.markdown("**Full Link:**")
+                    # st.code(subid_link, language="text")
+                    st.markdown("**Affiliate Link:**")
+                    st.code(tiny_subid_link, language="text")
+            else:
+                st.warning("Please enter a valid Flipkart URL.")
+
 
 # ===================== RUN =====================
 if __name__ == "__main__":
