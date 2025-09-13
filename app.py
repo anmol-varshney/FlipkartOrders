@@ -7,19 +7,19 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import os
 
 # =====Local======
-from dotenv import load_dotenv
-load_dotenv()
-HEADERS = {
-    "Fk-Affiliate-Id": "bh7162",
-    "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-}
+# from dotenv import load_dotenv
+# load_dotenv()
+# HEADERS = {
+#     "Fk-Affiliate-Id": "bh7162",
+#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
+# }
 
 # ===================== CONFIG(server) =====================
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
-# HEADERS = {
-#     "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
-#     "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
-# }
+HEADERS = {
+    "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
+    "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
+}
 
 # Affiliate Link Generator Settings
 AFFILIATE_ID = "bh7162"
