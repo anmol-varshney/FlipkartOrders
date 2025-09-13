@@ -91,16 +91,16 @@ def visualize_data(df):
     total_orders = len(df)
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("💰 Total Sales", f"₹{total_sales:,.0f}")
-    col2.metric("🏆 Total Commission", f"₹{total_commission:,.0f}")
-    col3.metric("📦 Total Orders", total_orders)
+    col1.metric("📦 Total Orders", total_orders)
+    col2.metric("","")#("🏆 Total Commission", f"₹{total_commission:,.0f}")
+    col3.metric("","")#("💰 Total Sales", f"₹{total_sales:,.0f}")
 
     st.markdown("---")
 
-    # --- Commission by Category ---
-    st.subheader("🎯 Commission by Category")
-    commission_category = df.groupby("category")["tentativeCommission"].sum().sort_values(ascending=False)
-    st.bar_chart(commission_category)
+    # # --- Commission by Category ---
+    # st.subheader("🎯 Commission by Category")
+    # commission_category = df.groupby("category")["tentativeCommission"].sum().sort_values(ascending=False)
+    # st.bar_chart(commission_category)
 
     # --- Top Products ---
     st.subheader("🏅 Top Products by Sales")
@@ -261,8 +261,11 @@ def main():
         if st.button("Generate Affiliate Link"):
             if original_url.strip():
                 affiliate_link = generate_affiliate_link(original_url)  # your existing function
-                tiny_link = shorten_with_tinyurl(affiliate_link)
 
+                affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
+                
+                tiny_link = shorten_with_tinyurl(affiliate_link)
+                
                 st.success("✅ Normal Affiliate Link Generated")
                 # st.markdown("**Full Link:**")
                 # st.code(affiliate_link, language="text")
@@ -280,14 +283,15 @@ def main():
                     st.warning("Please enter your unique ID.")
                 else:
                     # Generate the Sub ID affiliate link
+                    affiliate_link = generate_affiliate_link(original_url)
                     if "?" in original_url:
-                        subid_link = f"{original_url}&affid={AFFILIATE_ID}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
+                        subid_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
                     else:
-                        subid_link = f"{original_url}?affid={AFFILIATE_ID}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
+                        subid_link = f"{affiliate_link}?affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
 
                     tiny_subid_link = shorten_with_tinyurl(subid_link)
 
-                    st.success("✅ Sub ID Affiliate Link Generated")
+                    st.success("✅ Unique Affiliate Link Generated")
                     # st.markdown("**Full Link:**")
                     # st.code(subid_link, language="text")
                     st.markdown("**Affiliate Link:**")
