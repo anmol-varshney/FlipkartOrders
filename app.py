@@ -243,6 +243,7 @@ def main():
                 df = pd.DataFrame(req_data).reset_index(drop=True)
                 df.index = df.index + 1
                 st.dataframe(df, use_container_width=True)
+                visualize_data(df)
             else:
                 st.warning("No data found for the given criteria.")
 
