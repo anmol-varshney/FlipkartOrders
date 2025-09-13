@@ -104,7 +104,7 @@ def visualize_data(df):
 
     # --- Top Products ---
     st.subheader("🏅 Top Products by Sales")
-    top_products = df.groupby("title")["effectivePrice"].sum().sort_values(ascending=False).head(5)
+    top_products = df.groupby("productTitle")["effectivePrice"].sum().sort_values(ascending=False).head(5)
     st.dataframe(top_products.reset_index())
 
 # ===================== AUTH =====================
