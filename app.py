@@ -38,6 +38,23 @@ def load_credentials():
     with open("credentials.json", "r") as file:
         return json.load(file)
 
+def save_login(username, aff_ext_param1):
+    """Persist login to file so refresh keeps user logged in."""
+    with open("login_state.json", "w") as f:
+        json.dump({"logged_in": True, "username": username, "aff_ext_param1": aff_ext_param1}, f)
+
+def load_login():
+    """Load login state from file."""
+    if os.path.exists("login_state.json"):
+        with open("login_state.json", "r") as f:
+            return json.load(f)
+    return {"logged_in": False}
+
+def clear_login():
+    """Clear login state file."""
+    if os.path.exists("login_state.json"):
+        os.remove("login_state.json")
+
 def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
     params = {
         "startDate": start_date,
@@ -85,24 +102,16 @@ import matplotlib.pyplot as plt
 def visualize_data(df):
     st.markdown("## 📊 Data Insights")
 
-    # --- KPIs ---
     total_sales = df["effectivePrice"].sum()
     total_commission = df["commission"].sum()
     total_orders = len(df)
 
     col1, col2, col3 = st.columns(3)
     col1.metric("📦 Total Orders", total_orders)
-    col2.metric("","")#("🏆 Total Commission", f"₹{total_commission:,.0f}")
-    col3.metric("","")#("💰 Total Sales", f"₹{total_sales:,.0f}")
+    col2.metric("","")
+    col3.metric("","")
 
     st.markdown("---")
-
-    # # --- Commission by Category ---
-    # st.subheader("🎯 Commission by Category")
-    # commission_category = df.groupby("category")["tentativeCommission"].sum().sort_values(ascending=False)
-    # st.bar_chart(commission_category)
-
-    # --- Top Products ---
     st.subheader("🏅 Top Products by Sales")
     top_products = df.groupby("productTitle")["effectivePrice"].sum().sort_values(ascending=False).head(5)
     st.dataframe(top_products.reset_index())
@@ -124,12 +133,14 @@ def login():
         st.session_state["logged_in"] = True
         st.session_state["aff_ext_param1"] = credentials[username][1]
         st.session_state["username"] = username
+        save_login(username, credentials[username][1])  # save login persistently
         st.rerun()
     elif login_clicked:
         st.error("Invalid username or password")
         
 def logout():
     st.session_state.clear()
+    clear_login()
     st.rerun()
 
 # ===================== MAIN =====================
@@ -140,7 +151,6 @@ def main():
         page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
     )
     
-    # CSS
     st.markdown(
     """
         <style>
@@ -156,10 +166,12 @@ def main():
     unsafe_allow_html=True
     )
 
+    # restore login if lost on refresh
     if "logged_in" not in st.session_state:
-        st.session_state["logged_in"] = False
-    
-    if not st.session_state["logged_in"]:
+        state = load_login()
+        st.session_state.update(state)
+
+    if not st.session_state.get("logged_in", False):
         login()
         return
     
@@ -247,9 +259,7 @@ def main():
             else:
                 st.warning("No data found for the given criteria.")
 
-
     # ===================== AFFILIATE LINK GENERATOR =====================
-
     st.markdown(
     """
     <div style="text-align: center; margin-top: 30px;">
@@ -261,23 +271,17 @@ def main():
     )
 
     original_url = st.text_input("Enter Flipkart Product URL:")
-    subid_input = st.text_input("Enter your Unique ID:")  # New input for Sub ID
+    subid_input = st.text_input("Enter your Unique ID:")
 
-    # --- Buttons in one row ---
     col1, col2 = st.columns(2)
 
     with col1:
         if st.button("Generate Affiliate Link"):
             if original_url.strip():
-                affiliate_link = generate_affiliate_link(original_url)  # your existing function
-
+                affiliate_link = generate_affiliate_link(original_url)
                 affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
-                
                 tiny_link = shorten_with_tinyurl(affiliate_link)
-                
                 st.success("✅ Normal Affiliate Link Generated")
-                # st.markdown("**Full Link:**")
-                # st.code(affiliate_link, language="text")
                 st.markdown("**Affiliate Link:**")
                 st.code(tiny_link, language="text")
             else:
@@ -286,28 +290,20 @@ def main():
     with col2:
         if st.button("Generate Affiliate Link with Unique ID"):
             if original_url.strip():
-                credentials = load_credentials()
-
                 if not subid_input.strip():
                     st.warning("Please enter your unique ID.")
                 else:
-                    # Generate the Sub ID affiliate link
                     affiliate_link = generate_affiliate_link(original_url)
                     if "?" in original_url:
                         subid_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
                     else:
                         subid_link = f"{affiliate_link}?affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
-
                     tiny_subid_link = shorten_with_tinyurl(subid_link)
-
                     st.success("✅ Unique Affiliate Link Generated")
-                    # st.markdown("**Full Link:**")
-                    # st.code(subid_link, language="text")
                     st.markdown("**Affiliate Link:**")
                     st.code(tiny_subid_link, language="text")
             else:
                 st.warning("Please enter a valid Flipkart URL.")
-
 
 # ===================== RUN =====================
 if __name__ == "__main__":
