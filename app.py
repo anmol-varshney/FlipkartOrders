@@ -3,57 +3,21 @@ import requests
 import pandas as pd
 import json
 from datetime import date, datetime
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-import os
-
-# =====Local======
 # from dotenv import load_dotenv
-# load_dotenv()
-# HEADERS = {
-#     "Fk-Affiliate-Id": "bh7162",
-#     "Fk-Affiliate-Token": "1e3be35caea748378cdd98e720ea06b3"
-# }
+# import os
 
-# ===================== CONFIG(server) =====================
+# load_dotenv()
+
 URL = "https://affiliate-api.flipkart.net/affiliate/report/orders/detail/json"
 HEADERS = {
     "Fk-Affiliate-Id": st.secrets["FLIPKART_AFFILIATE_ID"],
     "Fk-Affiliate-Token": st.secrets["FLIPKART_AFFILIATE_TOKEN"]
 }
 
-# Affiliate Link Generator Settings
-AFFILIATE_ID = "bh7162"
-KEEP_PARAMS = [
-    "marketplace", "iid", "ppt", "lid", "srno", "pid",
-    "store", "ssid", "otracker1", "ppn", "spotlightTagId"
-]
-ORDER = [
-    "marketplace", "iid", "ppt", "lid", "srno",
-    "pid", "affid", "store", "ssid", "otracker1",
-    "ppn", "spotlightTagId"
-]
-
-# ===================== HELPERS =====================
+# Load credentials from JSON file
 def load_credentials():
     with open("credentials.json", "r") as file:
         return json.load(file)
-
-def save_login(username, aff_ext_param1):
-    """Persist login to file so refresh keeps user logged in."""
-    with open("login_state.json", "w") as f:
-        json.dump({"logged_in": True, "username": username, "aff_ext_param1": aff_ext_param1}, f)
-
-def load_login():
-    """Load login state from file."""
-    if os.path.exists("login_state.json"):
-        with open("login_state.json", "r") as f:
-            return json.load(f)
-    return {"logged_in": False}
-
-def clear_login():
-    """Clear login state file."""
-    if os.path.exists("login_state.json"):
-        os.remove("login_state.json")
 
 def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
     params = {
@@ -71,56 +35,16 @@ def fetch_data(start_date, end_date, status, aff_ext_param1, page_number):
         st.error(f"Failed to fetch data: {response.status_code}")
         return None
 
-def generate_affiliate_link(original_url: str) -> str:
-    parsed = urlparse(original_url)
-    base_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-    query_params = parse_qs(parsed.query)
 
-    filtered = {k: v for k, v in query_params.items() if k in KEEP_PARAMS}
-    filtered["affid"] = [AFFILIATE_ID]
-
-    ordered_query = []
-    for key in ORDER:
-        if key in filtered:
-            ordered_query.append((key, filtered[key][0]))
-
-    new_query = urlencode(ordered_query, doseq=True)
-    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", new_query, ""))
-
-def shorten_with_tinyurl(url: str) -> str:
-    """Shorten a given URL using TinyURL free API."""
-    api_url = f"http://tinyurl.com/api-create.php?url={url}"
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        return response.text.strip()
-    else:
-        st.error(f"TinyURL API failed: {response.status_code}")
-        return url
-
-import matplotlib.pyplot as plt
-
-def visualize_data(df):
-    st.markdown("## 📊 Data Insights")
-
-    total_sales = df["effectivePrice"].sum()
-    total_commission = df["commission"].sum()
-    total_orders = len(df)
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📦 Total Orders", total_orders)
-    col2.metric("","")
-    col3.metric("","")
-
-    st.markdown("---")
-    st.subheader("🏅 Top Products by Sales")
-    top_products = df.groupby("productTitle")["effectivePrice"].sum().sort_values(ascending=False).head(5)
-    st.dataframe(top_products.reset_index())
-
-# ===================== AUTH =====================
 def login():
-    col1, col2, col3 = st.columns([1, 2, 1])  
-    with col2:  
-        st.image("https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true")
+
+    # Centering the logo using Streamlit's columns
+    col1, col2, col3 = st.columns([1, 2, 1])  # Creates three columns, middle column is wider
+    
+    with col2:  # Place image in the center column
+        st.image("https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
+
+    st.write(" ")
     st.write(" ")
     st.title("🔑 Login Page")
     
@@ -133,49 +57,172 @@ def login():
         st.session_state["logged_in"] = True
         st.session_state["aff_ext_param1"] = credentials[username][1]
         st.session_state["username"] = username
-        save_login(username, credentials[username][1])  # save login persistently
         st.rerun()
     elif login_clicked:
         st.error("Invalid username or password")
         
 def logout():
     st.session_state.clear()
-    clear_login()
     st.rerun()
 
-# ===================== MAIN =====================
 def main():
-    st.set_page_config(
-        page_title="AdgamaDigital", 
-        layout="centered", 
-        page_icon="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true"
-    )
+    st.set_page_config(page_title="AdgamaDigital", layout="centered", page_icon="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true")
     
+    # Inject custom CSS for a professional look and fixed buttons
     st.markdown(
     """
         <style>
-        .main { background-color: #e3f2fd; color: #0d47a1; font-family: 'Roboto', sans-serif; }
-        .title-container { background-color: #0d47a1; color: white; padding: 2em; text-align: center; border-radius: 8px; margin-bottom: 2em; }
-        .title-container h1 { color: white; }
-        header { background-color: white; color: #0d47a1; padding: 10px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); }
-        .nav-logo { display: flex; justify-content: center; }
-        .logged-in-info { background-color: #ffffff; color: #0d47a1; border: 2px solid #0288d1; border-radius: 8px; padding: 0.8em; margin-bottom: 1em; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); font-size: 1em; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .stSidebar { background-color: #bbdefb; color: #0d47a1; border-right: 3px solid #039be5; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; }
-        </style>
+    /* General Styles */
+    .main {
+        background-color: #e3f2fd; /* Light blue background */
+        color: #0d47a1; /* Dark blue text */
+        font-family: 'Roboto', sans-serif;
+    }
+
+    /* Title Container */
+    .title-container {
+        background-color: #0d47a1; /* Dark blue background */
+        color: white; /* White text */
+        padding: 2em; /* Padding around the title */
+        text-align: center;
+        border-radius: 8px; /* Rounded corners */
+        margin-bottom: 2em;
+    }
+
+    /* Change title color to yellow */
+    .title-container h1 {
+        color: white; /* Yellow color for the title */
+    }
+
+    /* Navigation Bar */
+    header {
+        background-color: white; /* White background */
+        color: #0d47a1; /* Dark blue text */
+        padding: 10px;
+        font-size: 1.2em;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    }
+    .nav-logo {
+        display: flex;
+        justify-content: center; /* Center the image */
+    }
+
+    /* Input Fields */
+    .stTextInput, .stDateInput, .stSelectbox {
+        background-color: #e3f2fd; /* Match main background */
+        color: #0d47a1; /* Dark blue text */
+        border: 1px solid #0288d1; /* Light blue border */
+        border-radius: 5px;
+        padding: 0.5em;
+    }
+
+    /* Buttons */
+    .stButton>button {
+        background-color: #0d47a1; /* Green background for a professional feel */
+        color: white; /* White text */
+        border: none;
+        padding: 0.6em 1.5em; /* Larger padding for a modern look */
+        border-radius: 25px; /* Rounded corners for a polished design */
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .stButton>button:hover {
+        background-color: #bbdefb; /* Light blue background on hover */
+        color: white; /* Text stays white */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+
+    /* "Logged in as" Section */
+    .logged-in-info {
+        background-color: #ffffff; /* White background */
+        color: #0d47a1; /* Dark blue text */
+        border: 2px solid #0288d1; /* Light blue border */
+        border-radius: 8px;
+        padding: 0.8em;
+        margin-bottom: 1em;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        font-size: 1em;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center-align the text */
+    }
+
+    /* Sidebar Styles */
+    .stSidebar {
+        background-color: #bbdefb; /* Lighter blue sidebar */
+        color: #0d47a1; /* Dark blue text */
+        border-right: 3px solid #039be5; /* Blue border */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100vh;
+    }
+
+    .stSidebar .block-container {
+        flex: 1;
+    }
+
+    /* Buttons at the bottom */
+    .bottom-button {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        padding: 0.6em 1.5em;
+        background-color: #4caf50; /* Green background for Fetch Data */
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .bottom-button:hover {
+        background-color: #bbdefb; /* Light blue background on hover */
+        color: white; /* Text stays white */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+
+    /* Logout Button at the bottom */
+    .logout-btn {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        padding: 0.6em 1.5em;
+        background-color: #f44336; /* Red background */
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1em;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    }
+    .logout-btn:hover {
+        background-color: #d32f2f; /* Darker red on hover */
+        transform: scale(1.05); /* Slight zoom effect */
+    }
+    </style>
+
     """,
     unsafe_allow_html=True
     )
 
-    # restore login if lost on refresh
     if "logged_in" not in st.session_state:
-        state = load_login()
-        st.session_state.update(state)
-
-    if not st.session_state.get("logged_in", False):
+        st.session_state["logged_in"] = False
+    
+    if not st.session_state["logged_in"]:
         login()
         return
     
-    # Title
+    # Title Container
     st.markdown(
         """
         <div class="title-container">
@@ -187,23 +234,24 @@ def main():
         unsafe_allow_html=True
     )
 
-    # Sidebar
+    # Sidebar for user inputs
     with st.sidebar:
         st.markdown(
             """
             <div class="nav-logo">
-                <img src="https://github.com/anmol-varshney/Logo/blob/main/company_logo.png?raw=true" width="100"/>
+                <img src="https://github.com/anmol-varshney/FlipkartOrders/blob/main/company_logo.png?raw=true" width="100"/>
             </div>
             """,
             unsafe_allow_html=True
         )
-        st.write("")
-        st.write("")
+        st.write(" ")
+        st.write(" ")
+        st.write(" ")
         if "username" in st.session_state:
             st.markdown(
                 f"""
                 <div class="logged-in-info">
-                    Logged in as: <span> {st.session_state['username']}</span>
+                    Logged in as:<span> {st.session_state['username']}</span>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -212,14 +260,45 @@ def main():
         st.header("🔍 Filter Options")
         start_date = st.date_input("Start Date")
         end_date = st.date_input("End Date")
+        
+        # Get current datetime
+        #now = datetime.now()
+
+        # Format as "YYYY-MM-DD"
+        #formatted_date = now.strftime("%Y-%m-%d")
+
+        # Format as "HH:MM:SS"
+        #formatted_time = now.strftime("%H:%M:%S")
+
+        # print("Current Date:", formatted_date)
+        # print("Current Time:", formatted_time)
+        
+        #start_date = formatted_date
+        #end_date = formatted_date
+        
         status = st.selectbox("Order Status", ["approved", "tentative", "cancelled"])
         
+        # Fetch Data Button
+        st.write(" ")
+        st.write(" ")
         fetch_button = st.button("Fetch Data", key="fetch_data_button", use_container_width=True)
         
+        # Logout Button
         if st.button("Logout", key="logout_button", use_container_width=True):
             logout()
     
+    # Position the buttons at the bottom of the sidebar using custom CSS
+    st.markdown("""
+    <script>
+        document.querySelector('.stSidebar').style.position = 'relative';
+        document.querySelector('.stSidebar').style.display = 'flex';
+        document.querySelector('.stSidebar').style.flexDirection = 'column';
+        document.querySelector('.stSidebar').style.justifyContent = 'space-between';
+    </script>
+    """, unsafe_allow_html=True)
+
     if fetch_button:
+
         aff_ext_param1 = st.session_state["aff_ext_param1"]
         data = fetch_data(start_date, end_date, status, aff_ext_param1, 1)
         if data and 'paginationContext' in data:
@@ -230,81 +309,39 @@ def main():
                 if page_data and 'orderList' in page_data:
                     full_data.extend(page_data['orderList'])
             req_data = []
+            # print(full_data)
             for sample in full_data:
-                if str(sample['affExtParam1']).startswith(str(aff_ext_param1)):
-                    mapped_row = {
-                        "orderItemUnitId": sample.get("affiliateOrderItemId", ""),
-                        "orderItemUnitStatus": sample.get("status", ""),
-                        "orderDate": sample.get("orderDate", ""),
-                        "partnerId": AFFILIATE_ID,
-                        "effectivePrice": sample.get("price", 0),
-                        "commission": sample.get("tentativeCommission", {}).get("amount", 0),
-                        "commissionRuleTitle": sample.get("category", ""),
-                        "commissionRate": sample.get("commissionRate", 0),
-                        "productId": sample.get("productId", ""),
-                        "productTitle": sample.get("title", ""),
-                        "extParam1": sample.get("affExtParam1", ""),
-                        "extParam2": sample.get("affExtParam2", ""),
-                        "updatedAt": sample.get("updatedAt", ""),
-                        "orderTimeStamp": sample.get("orderTimeStamp", "")
-                    }
-                    req_data.append(mapped_row)
-
-            st.markdown("<div style='text-align: center;'><h2>📌 Order Report 📌</h2></div>", unsafe_allow_html=True)
+                # Check both affiliate ID and orderDate match
+                if (
+                    str(sample['affExtParam1']).startswith(str(aff_ext_param1))
+                    #and sample.get("orderDate") == formatted_date
+                ):
+                    sample['sales'] = sample['sales']['amount']
+                    sample['tentativeCommission'] = sample['tentativeCommission']['amount']
+                    sample.pop("commissionRate", None)
+                    # sample.pop("affExtParam2", None)
+                    sample.pop("customerType", None)
+                    sample.pop("price", None)
+                    sample.pop("quantity", None)
+                    #sample.pop("tentativeCommission", None)
+                    req_data.append(sample)
+            st.markdown(
+               f"""
+                <div style="text-align: center;">
+                    <h2>📌 Order Report 📌</h2>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
             if req_data:
-                df = pd.DataFrame(req_data).reset_index(drop=True)
-                df.index = df.index + 1
-                st.dataframe(df, use_container_width=True)
-                visualize_data(df)
+                if req_data:
+                    df = pd.DataFrame(req_data).reset_index(drop=True)
+                    df.index = df.index + 1  # Change index to start from 1
+                    st.dataframe(df, use_container_width=True)
+
             else:
                 st.warning("No data found for the given criteria.")
+        
 
-    # ===================== AFFILIATE LINK GENERATOR =====================
-    st.markdown(
-    """
-    <div style="text-align: center; margin-top: 30px;">
-        <h2>🔗 Flipkart Affiliate Link Generator</h2>
-        <p><b>Paste a product link below and generate your affiliate link instantly.</b></p>
-    </div>
-    """,
-    unsafe_allow_html=True
-    )
-
-    original_url = st.text_input("Enter Flipkart Product URL:")
-    subid_input = st.text_input("Enter your Unique ID:")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("Generate Affiliate Link"):
-            if original_url.strip():
-                affiliate_link = generate_affiliate_link(original_url)
-                affiliate_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}"
-                tiny_link = shorten_with_tinyurl(affiliate_link)
-                st.success("✅ Normal Affiliate Link Generated")
-                st.markdown("**Affiliate Link:**")
-                st.code(tiny_link, language="text")
-            else:
-                st.warning("Please enter a valid Flipkart URL.")
-
-    with col2:
-        if st.button("Generate Affiliate Link with Unique ID"):
-            if original_url.strip():
-                if not subid_input.strip():
-                    st.warning("Please enter your unique ID.")
-                else:
-                    affiliate_link = generate_affiliate_link(original_url)
-                    if "?" in original_url:
-                        subid_link = f"{affiliate_link}&affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
-                    else:
-                        subid_link = f"{affiliate_link}?affExtParam1={st.session_state['aff_ext_param1']}&affExtParam2={subid_input}"
-                    tiny_subid_link = shorten_with_tinyurl(subid_link)
-                    st.success("✅ Unique Affiliate Link Generated")
-                    st.markdown("**Affiliate Link:**")
-                    st.code(tiny_subid_link, language="text")
-            else:
-                st.warning("Please enter a valid Flipkart URL.")
-
-# ===================== RUN =====================
 if __name__ == "__main__":
     main()
